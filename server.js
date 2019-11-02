@@ -5,6 +5,7 @@ var mongoose = require("mongoose");
 var axios = require("axios");
 var cheerio = require("cheerio");
 var path = require("path");
+var bodyParser = require("body-parser")
 
 // Require all models
 var db = require("./models");
@@ -35,6 +36,19 @@ app.get("/", function (req, res) {
     res.sendFile(path.join(__dirname, "./public/html/index.html"));
 });
 
+//Saved articles 
+app.get("/saved", function (req, res) {
+    db.Article.find(
+        { saved: true }
+    ).populate("notes")
+        .then(function (dbNote) {
+            res.json(dbNote);
+        })
+        .catch(function (err) {
+            res.json(err)
+        });
+})
+
 // Route to scrape the NYTimes website
 app.get("/scrape", function (req, res) {
     axios.get("https://www.nytimes.com/").then(function (response) {
@@ -59,6 +73,7 @@ app.get("/scrape", function (req, res) {
             //Create a new article using the 'scrapeResult' object 
             db.Article.create(scrapeResult)
                 .then(function (dbArticle) {
+
                     // console.log(dbArticle);
                 })
                 .catch(function (err) {
